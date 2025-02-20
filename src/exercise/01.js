@@ -1,27 +1,35 @@
 // Simple Data-fetching
-// http://localhost:3000/isolated/exercise/01.js
+// http://localhost:3000/isolated/final/01.extra-2.js
 
 import * as React from 'react'
-import {PokemonDataView, fetchPokemon, PokemonErrorBoundary} from '../pokemon'
+import {fetchPokemon, PokemonDataView, PokemonErrorBoundary} from '../pokemon'
 
-let pokemon
-let error
-const pokemonPromise = fetchPokemon('pikachu').then(
-  pokemonData => {
-    pokemon = pokemonData
-  },
-  pokemonError => {
-    error = pokemonError
-  },
-)
+let pokemonResource = createResource(fetchPokemon('pikachu'))
+
+function createResource(promise) {
+  let status = 'pending'
+  let result = promise.then(
+    resolved => {
+      status = 'success'
+      result = resolved
+    },
+    rejected => {
+      status = 'error'
+      result = rejected
+    },
+  )
+  return {
+    read() {
+      if (status === 'pending') throw result
+      if (status === 'error') throw result
+      if (status === 'success') return result
+      throw new Error('This should be impossible')
+    },
+  }
+}
 
 function PokemonInfo() {
-  if (error) {
-    throw error
-  }
-  if (!pokemon) {
-    throw pokemonPromise
-  }
+  const pokemon = pokemonResource.read()
   return (
     <div>
       <div className="pokemon-info__img-wrapper">

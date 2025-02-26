@@ -1,5 +1,5 @@
 // Cache resources
-// http://localhost:3000/isolated/exercise/04.js
+// http://localhost:3000/isolated/final/04.extra-1.js
 
 import * as React from 'react'
 import {
@@ -30,15 +30,20 @@ const SUSPENSE_CONFIG = {
 }
 
 const pokemonResourceCache = {}
+const PokemonResourceCacheContext = React.createContext(getPokemonResource)
 
-function getPokemonResource(pokemonName) {
-  const lowerName = pokemonName.toLowerCase()
+function getPokemonResource(name) {
+  const lowerName = name.toLowerCase()
   let resource = pokemonResourceCache[lowerName]
   if (!resource) {
     resource = createPokemonResource(lowerName)
     pokemonResourceCache[lowerName] = resource
   }
   return resource
+}
+
+function usePokemonResourceCache() {
+  return React.useContext(PokemonResourceCacheContext)
 }
 
 function createPokemonResource(pokemonName) {
@@ -49,6 +54,7 @@ function App() {
   const [pokemonName, setPokemonName] = React.useState('')
   const [startTransition, isPending] = React.useTransition(SUSPENSE_CONFIG)
   const [pokemonResource, setPokemonResource] = React.useState(null)
+  const getPokemonResource = usePokemonResourceCache()
 
   React.useEffect(() => {
     if (!pokemonName) {
@@ -58,7 +64,7 @@ function App() {
     startTransition(() => {
       setPokemonResource(getPokemonResource(pokemonName))
     })
-  }, [pokemonName, startTransition])
+  }, [getPokemonResource, pokemonName, startTransition])
 
   function handleSubmit(newPokemonName) {
     setPokemonName(newPokemonName)
